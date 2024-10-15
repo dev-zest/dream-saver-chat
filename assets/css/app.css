@@ -3,3 +3,34 @@
 @import "tailwindcss/utilities";
 
 /* This file is for your main application CSS */
+
+.chat-container {
+    height: calc(100vh - 120px);
+    overflow-y: auto;
+}
+
+.message {
+    max-width: 80%;
+    padding: 10px 15px;
+    border-radius: 20px;
+    margin-bottom: 10px;
+}
+
+.bot-message {
+    background-color: #f7f7f8;
+}
+
+.user-message {
+    background-color: #10a37f;
+    color: white;
+    margin-left: auto;
+}
+
+.center-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    text-align: center;
+}
