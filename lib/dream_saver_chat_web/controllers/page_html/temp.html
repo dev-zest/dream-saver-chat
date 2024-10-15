@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dream Saver</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.js"></script>
+    <style>
+        .chat-container {
+            height: calc(100vh - 120px);
+            overflow-y: auto;
+        }
+        .message {
+            max-width: 80%;
+            padding: 10px 15px;
+            border-radius: 20px;
+            margin-bottom: 10px;
+        }
+        .bot-message {
+            background-color: #f7f7f8;
+        }
+        .user-message {
+            background-color: #10a37f;
+            color: white;
+            margin-left: auto;
+        }
+        .center-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            text-align: center;
+        }
+    </style>
+</head>
+<body class="bg-white flex flex-col h-screen">
+    <header class="bg-white border-b p-4 flex justify-center items-center">
+        <h1 class="text-3xl font-bold text-green-600">Dream Saver</h1>
+    </header>
+
+    <main class="flex-grow overflow-hidden">
+        <div id="start-screen" class="center-content p-4">
+            <h2 id="welcome-message" class="text-2xl font-bold mb-4"></h2>
+            <button onclick="startChat()" class="bg-green-500 text-white px-6 py-3 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400">
+                목표 설정하기
+            </button>
+        </div>
+        <div id="chat" class="chat-container p-4 flex flex-col hidden"></div>
+    </main>
+
+    <footer class="bg-white border-t p-4">
+        <div class="max-w-3xl mx-auto flex">
+            <input type="text" id="userInput" class="flex-grow p-2 border rounded-l-md focus:outline-none focus:ring-2 focus:ring-green-400" placeholder="메시지를 입력하세요..." disabled>
+            <button onclick="sendMessage()" class="bg-green-500 text-white px-4 py-2 rounded-r-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-400" disabled>
+                전송
+            </button>
+        </div>
+    </footer>
+
+    <script>
+        const chat = document.getElementById('chat');
+        const userInput = document.getElementById('userInput');
+        const startScreen = document.getElementById('start-screen');
+        const welcomeMessage = document.getElementById('welcome-message');
+        let step = 0;
+        let goalAmount, monthlySavings, interestType, months;
+
+        const welcomeMessages = [
+            "당신의 저축 목표를 이루는 여정을 시작해볼까요?",
+            "꿈을 향한 첫 걸음, 함께 시작해볼까요?",
+            "재정적 자유를 향한 여정, 준비되셨나요?",
+            "당신의 미래를 위한 저축, 오늘부터 시작해요!",
+            "작은 저축으로 큰 꿈을 이루는 방법, 알아볼까요?"
+        ];
+
+        function getRandomMessage(messages) {
+            return messages[Math.floor(Math.random() * messages.length)];
+        }
+
+        // Set random welcome message on page load
+        welcomeMessage.textContent = getRandomMessage(welcomeMessages);
+
+        function startChat() {
+            startScreen.classList.add('hidden');
+            chat.classList.remove('hidden');
+            userInput.disabled = false;
+            document.querySelector('footer button').disabled = false;
+            addMessage('bot', '안녕하세요! Dream Saver입니다. 이루고 싶은 저축 목표 금액이 얼마인가요?');
+        }
+
+        function addMessage(sender, message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender === 'bot' ? 'bot-message' : 'user-message'}`;
+            messageDiv.textContent = message;
+            chat.appendChild(messageDiv);
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        function sendMessage() {
+            const message = userInput.value.trim();
+            if (message) {
+                addMessage('user', message);
+                processUserInput(message);
+                userInput.value = '';
+            }
+        }
+
+        function processUserInput(input) {
+            switch(step) {
+                case 0:
+                    goalAmount = parseFloat(input.replace(/,/g, ''));
+                    addMessage('bot', `목표 금액 ${goalAmount.toLocaleString()}원이군요! 한 달에 얼마씩 저축하실 계획이신가요?`);
+                    step++;
+                    break;
+                case 1:
+                    monthlySavings = parseFloat(input.replace(/,/g, ''));
+                    addMessage('bot', `매월 ${monthlySavings.toLocaleString()}원씩 저축하시는군요. 이자는 단리로 계산할까요, 아니면 월 복리로 계산할까요? (단리/월복리로 대답해주세요)`);
+                    step++;
+                    break;
+                case 2:
+                    interestType = input;
+                    calculateSavings();
+                    break;
+            }
+        }
+
+        function calculateSavings() {
+            const annualInterestRate = 0.05;
+            const monthlyInterestRate = annualInterestRate / 12;
+
+            if (interestType === '단리') {
+                months = Math.ceil(goalAmount / (monthlySavings + (monthlySavings * annualInterestRate / 12)));
+            } else {
+                months = Math.ceil(Math.log(goalAmount * monthlyInterestRate / monthlySavings + 1) / Math.log(1 + monthlyInterestRate));
+            }
+
+            const years = Math.floor(months / 12);
+            const remainingMonths = months % 12;
+
+            let timeString = '';
+            if (years > 0) {
+                timeString += `${years}년 `;
+            }
+            if (remainingMonths > 0) {
+                timeString += `${remainingMonths}개월`;
+            }
+
+            addMessage('bot', `목표 금액을 모으는 데 약 ${timeString}이 걸릴 것 같아요.`);
+
+            let encouragement = '';
+            if (months <= 12) {
+                encouragement = '와우! 정말 빠른 시일 내에 목표를 달성하실 수 있겠어요. 힘내세요!';
+            } else if (months <= 36) {
+                encouragement = '꾸준히 노력하면 곧 목표에 도달하실 거예요. 포기하지 마세요!';
+            } else {
+                encouragement = '장기적인 목표를 세우셨군요. 천천히 꾸준히 나아가면 반드시 이루실 수 있을 거예요!';
+            }
+
+            addMessage('bot', encouragement);
+            addMessage('bot', '새로운 목표를 설정하고 싶으시다면 목표 금액을 다시 입력해주세요.');
+            step = 0;
+        }
+
+        userInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
