@@ -17,8 +17,8 @@ defmodule DreamSaverChatWeb.Router do
   scope "/", DreamSaverChatWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
-    #live "/",
+    #get "/", PageController, :home
+    live "/", ThermostatLive
   end
 
   # Other scopes may use custom stacks.
