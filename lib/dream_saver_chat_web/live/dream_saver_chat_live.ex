@@ -1,6 +1,7 @@
 defmodule DreamSaverChatWeb.DreamSaverChatLive do
   use Phoenix.LiveView
   alias DreamSaverChat.WelcomeMessage
+  alias DreamSaverChat.ProcessUserInput
 
   def render(assigns) do
     ~H"""
@@ -95,7 +96,8 @@ defmodule DreamSaverChatWeb.DreamSaverChatLive do
        welcome_message: nil,
        chat_start: false,
        messages: [],
-       new_message: ""
+       new_message: "",
+       step: 0
      )}
   end
 
@@ -125,7 +127,16 @@ defmodule DreamSaverChatWeb.DreamSaverChatLive do
     # updated_messages = socket.assigns.messages ++ [new_message]
     # 첫 번째 리스트의 전체를 복사해야 하므로, 메세지가 많아질수록 성능이 저하될 수 있음.
     updated_messages = [new_message | socket.assigns.messages]
-    {:noreply, assign(socket, messages: updated_messages)}
+
+    res = ProcessUserInput.process_user_input(params["userInput"], socket.assigns.step)
+    updated_messages = [%{sender: :bot, content: res.res_msg} | updated_messages]
+
+    {:noreply,
+    socket
+    |> assign(messages: updated_messages)
+    |> assign(step: res.step)
+    #assign(socket, messages: updated_messages)
+    }
   end
 
   # def handle_event("add_message", params, socket) do
