@@ -55,14 +55,6 @@ defmodule DreamSaverChatWeb.DreamSaverChatLive do
 
       <footer class="bg-gray-100 border-t border-gray-200 p-4">
         <div class="max-w-3xl mx-auto flex">
-          <%!-- <form phx-submit="send_message">
-            <input type="text" name="message" value="<%= @new_message %>"
-                  placeholder="Type a message..." phx-keyup="update_message"/>
-            <button type="submit">Send</button>
-          </form>
-
-          phx-click="send_message"
-          --%>
           <form phx-submit="send_message" class="flex w-full">
             <input
               type="text"
@@ -78,7 +70,7 @@ defmodule DreamSaverChatWeb.DreamSaverChatLive do
               class="bg-slate-600 text-white px-4 py-2 rounded-r-md hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500"
               disabled={not @chat_start}
             >
-              전송
+              전송 <%= @goal_amount %> <%= @monthly_savings %>
             </button>
           </form>
         </div>
@@ -97,7 +89,9 @@ defmodule DreamSaverChatWeb.DreamSaverChatLive do
        chat_start: false,
        messages: [],
        new_message: "",
-       step: 0
+       step: 0,
+       goal_amount: nil,
+       monthly_savings: nil
      )}
   end
 
@@ -120,28 +114,29 @@ defmodule DreamSaverChatWeb.DreamSaverChatLive do
      |> assign(messages: updated_messages)}
   end
 
-  def handle_event("send_message", params, socket) do
-    # 여기에 메시지 전송 로직
-    new_message = %{sender: :user, content: params["userInput"]}
+  def handle_event("send_message", %{"userInput" => user_input}, socket) do
+    updated_messages = [%{sender: :user, content: user_input} | socket.assigns.messages]
 
-    # updated_messages = socket.assigns.messages ++ [new_message]
-    # 첫 번째 리스트의 전체를 복사해야 하므로, 메세지가 많아질수록 성능이 저하될 수 있음.
-    updated_messages = [new_message | socket.assigns.messages]
-
-    res = ProcessUserInput.process_user_input(params["userInput"], socket.assigns.step)
+    res = ProcessUserInput.process_user_input(user_input, socket.assigns.step, socket.assigns.goal_amount, socket.assigns.monthly_savings)
     updated_messages = [%{sender: :bot, content: res.res_msg} | updated_messages]
 
-    {:noreply,
-    socket
-    |> assign(messages: updated_messages)
-    |> assign(step: res.step)
-    #assign(socket, messages: updated_messages)
-    }
-  end
+    updated_socket =
+      socket
+      |> assign(messages: updated_messages)
+      |> assign(step: res.step)
 
-  # def handle_event("add_message", params, socket) do
-  #   # 여기에 메시지 추가 로직
-  #   IO.inspect(params)
-  #   {:noreply, socket}
-  # end
+    updated_socket =
+      case res do
+        %{goal_amount: goal_amount} ->
+          updated_socket |> assign(goal_amount: goal_amount)
+
+        %{monthly_savings: monthly_savings} ->
+          updated_socket |> assign(monthly_savings: monthly_savings)
+
+        _ ->
+          updated_socket
+      end
+
+    {:noreply, updated_socket}
+  end
 end
