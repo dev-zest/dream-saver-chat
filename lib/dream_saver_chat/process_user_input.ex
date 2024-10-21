@@ -27,8 +27,8 @@ defmodule DreamSaverChat.ProcessUserInput do
     }
   end
 
-  def process_user_input(input, step, goal_amount, monthly_savings) when step == 2 do
-    time_string = '1년'
+  def process_user_input(_input, step, goal_amount, monthly_savings) when step == 2 do
+    {:ok, time_string} = calculate_savings("단리", goal_amount, monthly_savings)
     %{
       res_msg:
         "목표 금액을 모으는 데 약 #{time_string}이 걸릴 것 같아요.",
@@ -36,9 +36,19 @@ defmodule DreamSaverChat.ProcessUserInput do
     }
   end
 
-  # defp calculate_savings("단리") do
-  #   annual_interest_rate = 0.05
-  #   #monthly_interest_rate = annual_interest_rate / 12;
-  #   months=
-  # end
+  defp calculate_savings("단리", goal_amount, monthly_savings) do
+    annual_interest_rate = 0.05
+
+    months = Float.ceil(goal_amount / (monthly_savings + (monthly_savings * annual_interest_rate / 12)))
+    years = trunc(Float.floor(months / 12))
+    remaining_months = rem(trunc(months), 12)
+
+    result = cond do
+      years > 0 -> "#{years}년"
+      remaining_months > 0 -> "#{remaining_months}개월"
+      true -> "기간 없음"
+    end
+
+    {:ok, result}
+  end
 end
