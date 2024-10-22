@@ -32,9 +32,7 @@ defmodule DreamSaverChat.ProcessUserInput do
     }
   end
 
-  @doc """
-  월 저축액을 설정하고 이자 계산 방식 선택 단계로 진행합니다.
-  """
+  # 월 저축액을 설정하고 이자 계산 방식 선택 단계로 진행합니다.
   def process_user_input(input, step, _goal_amount, _monthly_savings) when step == 1 do
     monthly_savings = String.to_integer(input)
 
@@ -46,9 +44,7 @@ defmodule DreamSaverChat.ProcessUserInput do
     }
   end
 
-  @doc """
-  선택된 이자 계산 방식에 따라 목표 금액 달성 기간을 계산하고 결과를 반환합니다.
-  """
+  # 선택된 이자 계산 방식에 따라 목표 금액 달성 기간을 계산하고 결과를 반환합니다.
   def process_user_input(input, step, goal_amount, monthly_savings) when step == 2 do
     {:ok, time_string} = calculate_savings(input, goal_amount, monthly_savings)
     %{
