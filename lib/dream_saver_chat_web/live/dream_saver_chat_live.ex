@@ -70,7 +70,7 @@ defmodule DreamSaverChatWeb.DreamSaverChatLive do
               class="bg-slate-600 text-white px-4 py-2 rounded-r-md hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-slate-500"
               disabled={not @chat_start}
             >
-              전송 <%= @goal_amount %> <%= @monthly_savings %>
+              전송
             </button>
           </form>
         </div>
